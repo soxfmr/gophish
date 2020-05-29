@@ -19,6 +19,8 @@ type Campaign struct {
 	CreatedDate   time.Time `json:"created_date"`
 	LaunchDate    time.Time `json:"launch_date"`
 	SendByDate    time.Time `json:"send_by_date"`
+	SendByGroup   int64     `json:"send_by_group"`
+	SendInterval  int64     `json:"send_interval"`
 	CompletedDate time.Time `json:"completed_date"`
 	TemplateId    int64     `json:"-"`
 	Template      Template  `json:"template"`
@@ -243,10 +245,20 @@ func (c *Campaign) getFromAddress() string {
 
 // generateSendDate creates a sendDate
 func (c *Campaign) generateSendDate(idx int, totalRecipients int) time.Time {
+	// If we reach the group size, increasing the interval for the reset mails
+	if c.SendByGroup > 0 && c.SendInterval > 0 && idx > 0 {
+		groupOffset := int64(idx) / c.SendByGroup
+		interval := groupOffset * c.SendInterval
+		if interval > 0 {
+			return c.LaunchDate.Add(time.Duration(interval) * time.Millisecond)
+		}
+	}
+
 	// If no send date is specified, just return the launch date
 	if c.SendByDate.IsZero() || c.SendByDate.Equal(c.LaunchDate) {
 		return c.LaunchDate
 	}
+
 	// Otherwise, we can calculate the range of minutes to send emails
 	// (since we only poll once per minute)
 	totalMinutes := c.SendByDate.Sub(c.LaunchDate).Minutes()
