@@ -13,10 +13,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/soxfmr/gomail"
 	"github.com/gophish/gophish/config"
 	log "github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/mailer"
+	"github.com/soxfmr/gomail"
 )
 
 // MaxSendAttempts set to 8 since we exponentially backoff after each failed send

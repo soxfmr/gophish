@@ -5,9 +5,9 @@ import (
 	"errors"
 	"fmt"
 
-	"github.com/soxfmr/gomail"
 	"github.com/gophish/gophish/config"
 	"github.com/jordan-wright/email"
+	"github.com/soxfmr/gomail"
 	check "gopkg.in/check.v1"
 )
 

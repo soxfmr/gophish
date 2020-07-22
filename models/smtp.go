@@ -9,10 +9,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/soxfmr/gomail"
 	log "github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/mailer"
 	"github.com/jinzhu/gorm"
+	"github.com/soxfmr/gomail"
 )
 
 // Dialer is a wrapper around a standard gomail.Dialer in order

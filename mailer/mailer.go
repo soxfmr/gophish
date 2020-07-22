@@ -6,9 +6,9 @@ import (
 	"io"
 	"net/textproto"
 
-	"github.com/soxfmr/gomail"
 	log "github.com/gophish/gophish/logger"
 	"github.com/sirupsen/logrus"
+	"github.com/soxfmr/gomail"
 )
 
 // MaxReconnectAttempts is the maximum number of times we should reconnect to a server
