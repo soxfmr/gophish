@@ -9,7 +9,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/gophish/gomail"
+	"github.com/soxfmr/gomail"
 	log "github.com/gophish/gophish/logger"
 	"github.com/gophish/gophish/mailer"
 	"github.com/jinzhu/gorm"
@@ -112,7 +112,15 @@ func (s *SMTP) GetDialer() (mailer.Dialer, error) {
 		log.Error(err)
 		return nil, err
 	}
-	d := gomail.NewDialer(host, port, s.Username, s.Password)
+	var proxy gomail.Proxy
+	if s.ProxyAddress != "" {
+		proxy = gomail.Proxy{
+			Address:  s.ProxyAddress,
+			Username: s.Username,
+			Password: s.Password,
+		}
+	}
+	d := gomail.NewDialerWithProxy(host, port, s.Username, s.Password, proxy)
 	d.TLSConfig = &tls.Config{
 		ServerName:         host,
 		InsecureSkipVerify: s.IgnoreCertErrors,

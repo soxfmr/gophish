@@ -13,7 +13,8 @@ Gophish: Open-Source Phishing Toolkit
 
 - [x] Mail sending interval
 - [ ] Campaign Pause && Re-Send Manually
-- [ ]  Attachment compose support (Macro, Binary file modify, File compress)
+- [x] Encoding for attachment name
+- [x] Proxy support for mail sending
 
 ### Install
 

@@ -22,6 +22,9 @@ function sendTestEmail() {
             username: $("#username").val(),
             password: $("#password").val(),
             ignore_cert_errors: $("#ignore_cert_errors").prop("checked"),
+            proxy_address: $("#proxy_address").val(),
+            proxy_username: $("#proxy_username").val(),
+            proxy_password: $("#proxy_password").val(),
             headers: headers,
         }
     }
@@ -59,6 +62,9 @@ function save(idx) {
     profile.username = $("#username").val()
     profile.password = $("#password").val()
     profile.ignore_cert_errors = $("#ignore_cert_errors").prop("checked")
+    profile.proxy_address = $("#proxy_address").val()
+    profile.proxy_username = $("#proxy_username").val()
+    profile.proxy_password = $("#proxy_password").val()
     if (idx != -1) {
         profile.id = profiles[idx].id
         api.SMTPId.put(profile)
@@ -93,6 +99,9 @@ function dismiss() {
     $("#username").val("")
     $("#password").val("")
     $("#ignore_cert_errors").prop("checked", true)
+    $("#proxy_address").val("")
+    $("#proxy_username").val("")
+    $("#proxy_password").val("")
     $("#headersTable").dataTable().DataTable().clear().draw()
     $("#modal").modal('hide')
 }
@@ -161,6 +170,9 @@ function edit(idx) {
         $("#username").val(profile.username)
         $("#password").val(profile.password)
         $("#ignore_cert_errors").prop("checked", profile.ignore_cert_errors)
+        $("#proxy_address").val(profile.proxy_address)
+        $("#proxy_username").val(profile.proxy_username)
+        $("#proxy_password").val(profile.proxy_password)
         $.each(profile.headers, function (i, record) {
             addCustomHeader(record.key, record.value)
         });
@@ -180,6 +192,9 @@ function copy(idx) {
     $("#username").val(profile.username)
     $("#password").val(profile.password)
     $("#ignore_cert_errors").prop("checked", profile.ignore_cert_errors)
+    $("#proxy_address").val(profile.proxy_address)
+    $("#proxy_username").val(profile.proxy_username)
+    $("#proxy_password").val(profile.proxy_password)
 }
 
 function load() {

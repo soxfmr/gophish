@@ -63,6 +63,18 @@
                         <label for="ignore_cert_errors">Ignore Certificate Errors <i class="fa fa-question-circle"
                                 data-toggle="tooltip" data-placement="right" title="Ignore common certificate errors such as self-signed certs (exposes you to MiTM attacks - use carefully!)"></i></label>
                     </div>
+                    <label class="control-label" for="proxyForm">SOCKS5 Proxy:</label>
+                    <input type="text" class="form-control" placeholder="proxy.example.com:1080" id="proxy_address" />
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label class="control-label" for="proxy_username">Username:</label>
+                            <input type="text" class="form-control" id="proxy_username" />
+                        </div>
+                        <div class="col-md-6">
+                            <label class="control-label" for="proxy_password">Password:</label>
+                            <input type="text" class="form-control" id="proxy_password" />
+                        </div>
+                    </div>
                     <label class="control-label" for="headersForm">Email Headers:</label>
                     <form id="headersForm">
                         <div class="col-md-4">
