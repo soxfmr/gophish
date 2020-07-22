@@ -41,6 +41,9 @@ type SMTP struct {
 	IgnoreCertErrors bool      `json:"ignore_cert_errors"`
 	Headers          []Header  `json:"headers"`
 	ModifiedDate     time.Time `json:"modified_date"`
+	ProxyAddress	 string	   `json:"proxy_address"`
+	ProxyUsername	 string	   `json:"proxy_username"`
+	ProxyPassword	 string	   `json:"proxy_password"`
 }
 
 // Header contains the fields and methods for a sending profile to have
