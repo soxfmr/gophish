@@ -124,6 +124,8 @@ function dismiss() {
     $("#url").val("");
     $("#profile").val("").change();
     $("#users").val("").change();
+    $('#send_by_group').val().change();
+    $('#send_interval').val().change();
     $("#modal").modal('hide');
 }
 
@@ -283,6 +285,8 @@ function copy(idx) {
                 $("#profile").trigger("change.select2")
             }
             $("#url").val(campaign.url)
+            $('#send_by_group').val(campaign.send_by_group);
+            $('#send_interval').val(campaign.send_interval);
         })
         .error(function (data) {
             $("#modal\\.flashes").empty().append("<div style=\"text-align:center\" class=\"alert alert-danger\">\

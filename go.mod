@@ -21,8 +21,11 @@ require (
 	github.com/jordan-wright/email v0.0.0-20200602115436-fd8a7622303e
 	github.com/jordan-wright/unindexed v0.0.0-20181209214434-78fa79113c0f
 	github.com/kylelemons/go-gypsy v0.0.0-20160905020020-08cad365cd28 // indirect
+	github.com/lib/pq v1.7.1 // indirect
 	github.com/mattn/go-sqlite3 v2.0.3+incompatible
 	github.com/oschwald/maxminddb-golang v1.6.0
+	github.com/pkg/errors v0.9.1 // indirect
+	github.com/pressly/goose v2.6.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.4.2
 	github.com/soxfmr/gomail v0.0.0-20200722081218-748156303dc3
 	github.com/ziutek/mymysql v1.5.4 // indirect
