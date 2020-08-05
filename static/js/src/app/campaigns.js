@@ -124,8 +124,8 @@ function dismiss() {
     $("#url").val("");
     $("#profile").val("").change();
     $("#users").val("").change();
-    $('#send_by_group').val().change();
-    $('#send_interval').val().change();
+    $('#send_by_group').val("0").change();
+    $('#send_interval').val("0").change();
     $("#modal").modal('hide');
 }
 

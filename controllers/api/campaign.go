@@ -135,3 +135,25 @@ func (as *Server) CampaignComplete(w http.ResponseWriter, r *http.Request) {
 		JSONResponse(w, models.Response{Success: true, Message: "Campaign completed successfully!"}, http.StatusOK)
 	}
 }
+
+// CampaignResend reschedule either all of mail to queue or the error one
+func (as *Server) CampaignResend(w http.ResponseWriter, r *http.Request) {
+	vars := mux.Vars(r)
+	id, _ := strconv.ParseInt(vars["id"], 0, 64)
+	switch {
+	case r.Method == "POST":
+		cr := models.CampaignResend{}
+		err := json.NewDecoder(r.Body).Decode(&cr)
+		if err != nil {
+			JSONResponse(w, models.Response{Success: false, Message: "Invalid JSON structure"}, http.StatusBadRequest)
+			return
+		}
+
+		err = models.ResendCampaign(id, ctx.Get(r, "user_id").(int64), &cr)
+		if err != nil {
+			JSONResponse(w, models.Response{Success: false, Message: "Error resending campaign"}, http.StatusInternalServerError)
+			return
+		}
+		JSONResponse(w, models.Response{Success: true, Message: "Campaign resend successfully!"}, http.StatusOK)
+	}
+}

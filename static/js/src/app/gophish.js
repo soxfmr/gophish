@@ -107,6 +107,10 @@ var api = {
         // summary() - Queries the API for GET /campaigns/summary
         summary: function (id) {
             return query("/campaigns/" + id + "/summary", "GET", {}, true)
+        },
+        // resend() - Queries the API for GET /campaigns/:id/resend
+        resend: function (id, data) {
+            return query("/campaigns/" + id + "/resend", "POST", data, true)
         }
     },
     // groups contains the endpoints for /groups

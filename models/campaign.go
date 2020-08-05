@@ -73,6 +73,10 @@ type CampaignStats struct {
 	Error         int64 `json:"error"`
 }
 
+type CampaignResend struct {
+	ResendAll     bool          `json:"resend_all"`
+}
+
 // Event contains the fields for an event
 // that occurs during the campaign
 type Event struct {
@@ -678,4 +682,62 @@ func CompleteCampaign(id int64, uid int64) error {
 		log.Error(err)
 	}
 	return err
+}
+
+func ResendCampaign(id int64, uid int64, resendInfo *CampaignResend) error {
+	var results []Result
+
+	log.WithFields(logrus.Fields{
+		"campaign_id": id,
+	}).Info("Rescheduling campaign")
+	c, err := GetCampaign(id, uid)
+	if err != nil {
+		return err
+	}
+
+	err = db.Table("results").Where("campaign_id=? and user_id=?", c.Id, c.UserId).Find(&results).Error
+	if err != nil {
+		log.Errorf("%s: results not found for campaign", err)
+		return err
+	}
+
+	sendDate := time.Now().UTC()
+
+	tx := db.Begin()
+	for _, r := range results {
+		if ! resendInfo.ResendAll && r.Status != Error {
+			continue
+		}
+
+		r.Status = StatusScheduled
+		r.SendDate = sendDate
+		r.ModifiedDate = sendDate
+		err = tx.Table("results").Where("Id=?", r.Id).Save(&r).Error
+		if err != nil {
+			log.Errorf("%s: error for updating result", err)
+			tx.Rollback()
+			return err
+		}
+
+		log.WithFields(logrus.Fields{
+			"email":     r.Email,
+			"send_date": sendDate,
+		}).Debug("creating maillog")
+		m := &MailLog{
+			UserId:     c.UserId,
+			CampaignId: c.Id,
+			RId:        r.RId,
+			SendDate:   sendDate,
+			Processing: false,
+		}
+		err = tx.Save(m).Error
+		if err != nil {
+			log.WithFields(logrus.Fields{
+				"email": r.Email,
+			}).Errorf("error creating maillog entry: %v", err)
+			tx.Rollback()
+			return err
+		}
+	}
+	return tx.Commit().Error
 }

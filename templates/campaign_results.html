@@ -26,6 +26,15 @@
                     </li>
                 </ul>
             </div>
+            <button id="pause_btn" type="button" class="btn btn-warning" data-toggle="tooltip" onclick="pauseCampaign()">
+                <i class="fa fa-pause-circle-o fa-lg"></i> Pause
+            </button>
+            <button id="pause_btn" type="button" class="btn btn-blue" data-toggle="tooltip" onclick="resumeCampaign()">
+                <i class="fa fa-play-circle-o fa-lg"></i> Resume
+            </button>
+            <button id="resend_btn" type="button" class="btn btn-blue" data-toggle="tooltip" onclick="resend()">
+                <i class="fa fa-repeat fa-lg"></i> Resend
+            </button>
             <button id="complete_button" type="button" class="btn btn-blue" data-toggle="tooltip" onclick="completeCampaign()">
                 <i class="fa fa-flag-checkered"></i> Complete
             </button>
@@ -87,5 +96,5 @@
     <div id="flashes" class="row"></div>
 </div>
 {{end}} {{define "scripts"}}
-<script src="/js/dist/app/campaign_results.min.js"></script>
+<script src="/js/src/app/campaign_results.js"></script>
 {{end}}

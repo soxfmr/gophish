@@ -123,6 +123,57 @@ function dismiss() {
     $("#resultsTable").dataTable().DataTable().clear().draw()
 }
 
+function resend() {
+    Swal.fire({
+        title: "Do you want to resend the mails?",
+        type: "question",
+        animation: false,
+        showCancelButton: true,
+        confirmButtonText: "Resend",
+        confirmButtonColor: "#428bca",
+        reverseButtons: true,
+        allowOutsideClick: false,
+        showLoaderOnConfirm: true,
+        input: 'radio',
+        inputValue: 'error',
+        inputOptions: {
+            'error': 'Resend on error',
+            'all': 'Resend all'
+        },
+        preConfirm: function (selector) {
+            var campaign_resend = {
+                resend_all: selector == "all"
+            };
+            return new Promise(function (resolve, reject) {
+                api.campaignId.resend(campaign.id, campaign_resend)
+                    .success(function (msg) {
+                        resolve(msg)
+                    })
+                    .error(function (data) {
+                        reject(data.responseJSON.message)
+                    })
+            })
+        }
+    }).then(function (result) {
+        if(result.value){
+            Swal.fire(
+                'Campaign Resent!',
+                'This campaign has been resent!',
+                'success'
+            );
+        }
+        $('button:contains("OK")').on('click', function () {
+            refresh()
+        })
+    })
+}
+
+function pauseCampaign() {
+}
+
+function resumeCampaign() {
+}
+
 // Deletes a campaign after prompting the user
 function deleteCampaign() {
     Swal.fire({
