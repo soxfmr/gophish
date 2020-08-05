@@ -27,7 +27,7 @@ require (
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/pressly/goose v2.6.0+incompatible // indirect
 	github.com/sirupsen/logrus v1.4.2
-	github.com/soxfmr/gomail v0.0.0-20200804135023-51e20059bcd5
+	github.com/soxfmr/gomail v0.0.0-20200727072103-068165e7fca3 // indirect
 	github.com/ziutek/mymysql v1.5.4 // indirect
 	golang.org/x/crypto v0.0.0-20200128174031-69ecbb4d6d5d
 	golang.org/x/time v0.0.0-20200416051211-89c76fbcd5d1
