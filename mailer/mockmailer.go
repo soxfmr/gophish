@@ -166,3 +166,7 @@ func (mm *mockMessage) Success() error {
 	mm.finished = true
 	return nil
 }
+
+func (mm *mockMessage) GetRecipient() (string, error) {
+	return mm.to[0], nil
+}

@@ -82,7 +82,7 @@ func TestMailWorkerStart(t *testing.T) {
 	messages := generateMessages(dialer)
 
 	// Send the campaign
-	mw.Queue(messages)
+	mw.Queue(MailJob{Bcc: false, Mails: messages})
 
 	got := []*mockMessage{}
 
@@ -123,7 +123,7 @@ func TestBackoff(t *testing.T) {
 	messages := generateMessages(dialer)
 
 	// Send the campaign
-	mw.Queue(messages)
+	mw.Queue(MailJob{Bcc: false, Mails: messages})
 
 	got := []*mockMessage{}
 
@@ -177,7 +177,7 @@ func TestPermError(t *testing.T) {
 	messages := generateMessages(dialer)
 
 	// Send the campaign
-	mw.Queue(messages)
+	mw.Queue(MailJob{Bcc: false, Mails: messages})
 
 	got := []*mockMessage{}
 
@@ -236,7 +236,7 @@ func TestUnknownError(t *testing.T) {
 	messages := generateMessages(dialer)
 
 	// Send the campaign
-	mw.Queue(messages)
+	mw.Queue(MailJob{Bcc: false, Mails: messages})
 
 	got := []*mockMessage{}
 

@@ -12,13 +12,13 @@ import (
 )
 
 type logMailer struct {
-	queue chan []mailer.Mail
+	queue chan mailer.MailJob
 }
 
 func (m *logMailer) Start(ctx context.Context) {}
 
-func (m *logMailer) Queue(ms []mailer.Mail) {
-	m.queue <- ms
+func (m *logMailer) Queue(job mailer.MailJob) {
+	m.queue <- job
 }
 
 // testContext is context to cover API related functions
@@ -133,7 +133,7 @@ func TestMailLogGrouping(t *testing.T) {
 		}
 	}
 
-	lm := &logMailer{queue: make(chan []mailer.Mail)}
+	lm := &logMailer{queue: make(chan mailer.MailJob)}
 	worker := &DefaultWorker{}
 	worker.mailer = lm
 
@@ -143,13 +143,13 @@ func TestMailLogGrouping(t *testing.T) {
 
 	// Verify that each slice of maillogs received belong to the same campaign
 	for i := 0; i < 10; i++ {
-		ms := <-lm.queue
-		maillog, ok := ms[0].(*models.MailLog)
+		job := <-lm.queue
+		maillog, ok := job.Mails[0].(*models.MailLog)
 		if !ok {
 			t.Fatalf("unable to cast mail to models.MailLog")
 		}
 		expected := maillog.CampaignId
-		for _, m := range ms {
+		for _, m := range job.Mails {
 			maillog, ok = m.(*models.MailLog)
 			if !ok {
 				t.Fatalf("unable to cast mail to models.MailLog")

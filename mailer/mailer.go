@@ -234,7 +234,10 @@ func sendMail(ctx context.Context, dialer Dialer, job MailJob) {
 				origErr := err
 				sender, err = dialHost(ctx, dialer)
 				if err != nil {
-					errorMail(err, job.Mails[i:])
+					if !job.Bcc {
+						activeMails = job.Mails[i:]
+					}
+					errorMail(err, activeMails)
 					break
 				}
 				backoffMail(origErr, activeMails)
