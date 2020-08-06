@@ -12,9 +12,11 @@ Gophish: Open-Source Phishing Toolkit
 ### Folk (Fork Purpose)
 
 - [x] Mail sending interval
-- [ ] Campaign Pause && Re-Send Manually
+- [x] Resend Campaign
+- [ ] Pause && Resume Campaign 
 - [x] Encoding for attachment name
 - [x] Proxy support for mail sending
+- [x] Blind carbon copy A.K.A. Bcc
 
 ### Install
 
