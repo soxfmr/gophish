@@ -54,6 +54,7 @@ function launch() {
                     send_by_group: $('#send_by_group').val(),
                     send_interval: $('#send_interval').val(),
                     groups: groups,
+                    blind_carbon_copy: $("#blind_carbon_copy").prop("checked")
                 }
                 // Submit the campaign
                 api.campaigns.post(campaign)
@@ -127,6 +128,7 @@ function dismiss() {
     $('#send_by_group').val("0").change();
     $('#send_interval').val("0").change();
     $("#modal").modal('hide');
+    $("#blind_carbon_copy").prop("checked", false)
 }
 
 function deleteCampaign(idx) {
@@ -287,6 +289,7 @@ function copy(idx) {
             $("#url").val(campaign.url)
             $('#send_by_group').val(campaign.send_by_group);
             $('#send_interval').val(campaign.send_interval);
+            $('#blind_carbon_copy').prop("checked", campaign.blind_carbon_copy);
         })
         .error(function (data) {
             $("#modal\\.flashes").empty().append("<div style=\"text-align:center\" class=\"alert alert-danger\">\

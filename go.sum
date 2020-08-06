@@ -81,6 +81,8 @@ github.com/soxfmr/gomail v0.0.0-20200727072103-068165e7fca3 h1:khJnBzGA223+AjsZe
 github.com/soxfmr/gomail v0.0.0-20200727072103-068165e7fca3/go.mod h1:FInbtXuM/O1SXBIDwtDMgV8JDa4fHNoZ4QjItNNwA5g=
 github.com/soxfmr/gomail v0.0.0-20200804135023-51e20059bcd5 h1:sTAW/ZSNtzGhuU8eKIp+CjRG/m/rlstOo/YpwaWnLDE=
 github.com/soxfmr/gomail v0.0.0-20200804135023-51e20059bcd5/go.mod h1:FInbtXuM/O1SXBIDwtDMgV8JDa4fHNoZ4QjItNNwA5g=
+github.com/soxfmr/gomail v0.0.0-20200806033254-80bf84e583f0 h1:eVzIpz9oWTxss+/w5zHkUvCKNCt+1djBoTVlm2lgGQA=
+github.com/soxfmr/gomail v0.0.0-20200806033254-80bf84e583f0/go.mod h1:FInbtXuM/O1SXBIDwtDMgV8JDa4fHNoZ4QjItNNwA5g=
 github.com/stretchr/objx v0.1.0/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/objx v0.1.1/go.mod h1:HFkY916IF+rwdDfMAkV7OtwuqBVzrE8GR6GFx+wExME=
 github.com/stretchr/testify v1.2.2/go.mod h1:a8OnRcib4nhh0OaRAV+Yts87kKdq0PP7pXfy6kDkUVs=

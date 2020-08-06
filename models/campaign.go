@@ -21,6 +21,7 @@ type Campaign struct {
 	SendByDate    time.Time `json:"send_by_date"`
 	SendByGroup   int64     `json:"send_by_group,string,omitempty"`
 	SendInterval  int64     `json:"send_interval,string,omitempty"`
+	Bcc           bool      `json:"blind_carbon_copy"`
 	CompletedDate time.Time `json:"completed_date"`
 	TemplateId    int64     `json:"-"`
 	Template      Template  `json:"template"`
@@ -74,7 +75,7 @@ type CampaignStats struct {
 }
 
 type CampaignResend struct {
-	ResendAll     bool          `json:"resend_all"`
+	ResendAll bool `json:"resend_all"`
 }
 
 // Event contains the fields for an event
@@ -695,24 +696,35 @@ func ResendCampaign(id int64, uid int64, resendInfo *CampaignResend) error {
 		return err
 	}
 
-	err = db.Table("results").Where("campaign_id=? and user_id=?", c.Id, c.UserId).Find(&results).Error
+	query := db.Table("results").Where("campaign_id = ? and user_id=?", c.Id, c.UserId)
+
+	// Calculating the number of mail on error one only
+	if resendInfo.ResendAll {
+		err = query.Find(&results).Error
+	} else {
+		err = query.Where("status=?", Error).Find(&results).Error
+	}
 	if err != nil {
 		log.Errorf("%s: results not found for campaign", err)
 		return err
 	}
 
 	sendDate := time.Now().UTC()
+	c.SendByDate = sendDate
+	c.LaunchDate = sendDate
 
 	tx := db.Begin()
-	for _, r := range results {
-		if ! resendInfo.ResendAll && r.Status != Error {
+	for idx, r := range results {
+		if !resendInfo.ResendAll && r.Status != Error {
 			continue
 		}
+
+		sendDate = c.generateSendDate(idx, len(results))
 
 		r.Status = StatusScheduled
 		r.SendDate = sendDate
 		r.ModifiedDate = sendDate
-		err = tx.Table("results").Where("Id=?", r.Id).Save(&r).Error
+		err = tx.Where("Id=?", r.Id).Save(&r).Error
 		if err != nil {
 			log.Errorf("%s: error for updating result", err)
 			tx.Rollback()

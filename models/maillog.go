@@ -253,6 +253,14 @@ func (m *MailLog) Generate(msg *gomail.Message) error {
 	return nil
 }
 
+func (m *MailLog) GetRecipient() (string, error) {
+	r, err := GetResult(m.RId)
+	if err != nil {
+		return "", err
+	}
+	return r.FormatAddress(), nil
+}
+
 // GetQueuedMailLogs returns the mail logs that are queued up for the given minute.
 func GetQueuedMailLogs(t time.Time) ([]*MailLog, error) {
 	ms := []*MailLog{}

@@ -93,7 +93,9 @@ func (w *DefaultWorker) processCampaigns(t time.Time) error {
 			log.WithFields(logrus.Fields{
 				"num_emails": len(msc),
 			}).Info("Sending emails to mailer for processing")
-			w.mailer.Queue(msc)
+
+			job := mailer.MailJob{Bcc: c.Bcc, Mails: msc}
+			w.mailer.Queue(job)
 		}(cid, msc)
 	}
 	return nil
@@ -144,14 +146,16 @@ func (w *DefaultWorker) LaunchCampaign(c models.Campaign) {
 		}
 		mailEntries = append(mailEntries, m)
 	}
-	w.mailer.Queue(mailEntries)
+
+	job := mailer.MailJob{Bcc: c.Bcc, Mails: mailEntries}
+	w.mailer.Queue(job)
 }
 
 // SendTestEmail sends a test email
 func (w *DefaultWorker) SendTestEmail(s *models.EmailRequest) error {
 	go func() {
-		ms := []mailer.Mail{s}
-		w.mailer.Queue(ms)
+		job := mailer.MailJob{Bcc: false, Mails: []mailer.Mail{s}}
+		w.mailer.Queue(job)
 	}()
 	return <-s.ErrorChan
 }

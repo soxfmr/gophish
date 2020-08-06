@@ -20,6 +20,11 @@ type ErrMaxConnectAttempts struct {
 	underlyingError error
 }
 
+type MailJob struct {
+	Bcc   bool
+	Mails []Mail
+}
+
 // Error returns the wrapped error response
 func (e *ErrMaxConnectAttempts) Error() string {
 	errString := "Max connection attempts exceeded"
@@ -33,7 +38,7 @@ func (e *ErrMaxConnectAttempts) Error() string {
 // send mailer.Mail instances.
 type Mailer interface {
 	Start(ctx context.Context)
-	Queue([]Mail)
+	Queue(MailJob)
 }
 
 // Sender exposes the common operations required for sending email.
@@ -55,20 +60,21 @@ type Mail interface {
 	Success() error
 	Generate(msg *gomail.Message) error
 	GetDialer() (Dialer, error)
+	GetRecipient() (string, error)
 }
 
 // MailWorker is the worker that receives slices of emails
 // on a channel to send. It's assumed that every slice of emails received is meant
 // to be sent to the same server.
 type MailWorker struct {
-	queue chan []Mail
+	queue chan MailJob
 }
 
 // NewMailWorker returns an instance of MailWorker with the mail queue
 // initialized.
 func NewMailWorker() *MailWorker {
 	return &MailWorker{
-		queue: make(chan []Mail),
+		queue: make(chan MailJob),
 	}
 }
 
@@ -79,22 +85,22 @@ func (mw *MailWorker) Start(ctx context.Context) {
 		select {
 		case <-ctx.Done():
 			return
-		case ms := <-mw.queue:
-			go func(ctx context.Context, ms []Mail) {
-				dialer, err := ms[0].GetDialer()
+		case job := <-mw.queue:
+			go func(ctx context.Context, job MailJob) {
+				dialer, err := job.Mails[0].GetDialer()
 				if err != nil {
-					errorMail(err, ms)
+					errorMail(err, job.Mails)
 					return
 				}
-				sendMail(ctx, dialer, ms)
-			}(ctx, ms)
+				sendMail(ctx, dialer, job)
+			}(ctx, job)
 		}
 	}
 }
 
 // Queue sends the provided mail to the internal queue for processing.
-func (mw *MailWorker) Queue(ms []Mail) {
-	mw.queue <- ms
+func (mw *MailWorker) Queue(job MailJob) {
+	mw.queue <- job
 }
 
 // errorMail is a helper to handle erroring out a slice of Mail instances
@@ -102,6 +108,18 @@ func (mw *MailWorker) Queue(ms []Mail) {
 func errorMail(err error, ms []Mail) {
 	for _, m := range ms {
 		m.Error(err)
+	}
+}
+
+func backoffMail(err error, ms []Mail) {
+	for _, m := range ms {
+		m.Backoff(err)
+	}
+}
+
+func successMail(ms []Mail) {
+	for _, m := range ms {
+		m.Success()
 	}
 }
 
@@ -137,16 +155,18 @@ func dialHost(ctx context.Context, dialer Dialer) (Sender, error) {
 // sendMail attempts to send the provided Mail instances.
 // If the context is cancelled before all of the mail are sent,
 // sendMail just returns and does not modify those emails.
-func sendMail(ctx context.Context, dialer Dialer, ms []Mail) {
+func sendMail(ctx context.Context, dialer Dialer, job MailJob) {
 	sender, err := dialHost(ctx, dialer)
 	if err != nil {
 		log.Warn(err)
-		errorMail(err, ms)
+		errorMail(err, job.Mails)
 		return
 	}
 	defer sender.Close()
+
+	errorMails := []Mail{}
 	message := gomail.NewMessage()
-	for i, m := range ms {
+	for i, m := range job.Mails {
 		select {
 		case <-ctx.Done():
 			return
@@ -158,8 +178,18 @@ func sendMail(ctx context.Context, dialer Dialer, ms []Mail) {
 		if err != nil {
 			log.Warn(err)
 			m.Error(err)
+			errorMails = append(errorMails, m)
 			continue
 		}
+
+		// Filling the receiver header of message with recipient of mail logs when Bcc is enabled
+		if job.Bcc {
+			excludedMails := SetMessageRecipients(message, GetActiveMails(job, i, errorMails))
+			errorMails = append(errorMails, excludedMails...)
+		}
+
+		activeMails := GetActiveMails(job, i, errorMails)
+
 		err = gomail.Send(sender, message)
 		if err != nil {
 			if te, ok := err.(*textproto.Error); ok {
@@ -170,53 +200,110 @@ func sendMail(ctx context.Context, dialer Dialer, ms []Mail) {
 				case te.Code >= 400 && te.Code <= 499:
 					log.WithFields(logrus.Fields{
 						"code":  te.Code,
-						"email": message.GetHeader("To")[0],
+						"email": GetRecipientDescription(message),
 					}).Warn(err)
-					m.Backoff(err)
+					backoffMail(err, activeMails)
 					sender.Reset()
-					continue
 				// Otherwise, if it's a permanent error, we shouldn't backoff this message,
 				// since the RFC specifies that running the same commands won't work next time.
 				// We should reset our sender and error this message out.
 				case te.Code >= 500 && te.Code <= 599:
 					log.WithFields(logrus.Fields{
 						"code":  te.Code,
-						"email": message.GetHeader("To")[0],
+						"email": GetRecipientDescription(message),
 					}).Warn(err)
-					m.Error(err)
+					errorMail(err, activeMails)
 					sender.Reset()
-					continue
 				// If something else happened, let's just error out and reset the
 				// sender
 				default:
 					log.WithFields(logrus.Fields{
 						"code":  "unknown",
-						"email": message.GetHeader("To")[0],
+						"email": GetRecipientDescription(message),
 					}).Warn(err)
-					m.Error(err)
+					errorMail(err, activeMails)
 					sender.Reset()
-					continue
 				}
 			} else {
 				// This likely indicates that something happened to the underlying
 				// connection. We'll try to reconnect and, if that fails, we'll
 				// error out the remaining emails.
 				log.WithFields(logrus.Fields{
-					"email": message.GetHeader("To")[0],
+					"email": GetRecipientDescription(message),
 				}).Warn(err)
 				origErr := err
 				sender, err = dialHost(ctx, dialer)
 				if err != nil {
-					errorMail(err, ms[i:])
+					errorMail(err, job.Mails[i:])
 					break
 				}
-				m.Backoff(origErr)
+				backoffMail(origErr, activeMails)
+			}
+		} else {
+			log.WithFields(logrus.Fields{
+				"email": GetRecipientDescription(message),
+			}).Info("Email sent")
+			successMail(activeMails)
+		}
+
+		if job.Bcc {
+			break
+		}
+	}
+}
+
+// GetActiveMails retrieve current mail that plan to be send.
+// If the mail send over Bcc, returning the whole mail group
+func GetActiveMails(job MailJob, index int, excludedMails []Mail) []Mail {
+	mailEntries := []Mail{}
+	if job.Bcc {
+		for _, m := range job.Mails {
+			excluded := false
+			// Find the mail log which has error occur
+			for _, excludedMail := range excludedMails {
+				if m == excludedMail {
+					excluded = true
+					break
+				}
+			}
+			if excluded {
 				continue
 			}
+			mailEntries = append(mailEntries, m)
 		}
-		log.WithFields(logrus.Fields{
-			"email": message.GetHeader("To")[0],
-		}).Info("Email sent")
-		m.Success()
+		return mailEntries
+	}
+
+	return []Mail{job.Mails[index]}
+}
+
+func SetMessageRecipients(msg *gomail.Message, ms []Mail) (excludedMails []Mail) {
+	recipients := []string{}
+	for _, m := range ms {
+		recipient, err := m.GetRecipient()
+		if err != nil {
+			m.Error(err)
+			excludedMails = append(excludedMails, m)
+			continue
+		}
+		recipients = append(recipients, recipient)
+	}
+	// Remove To field from message header for Bcc
+	msg.RemoveHeader("To")
+	msg.SetHeader("Bcc", recipients...)
+	return excludedMails
+}
+
+func GetRecipientDescription(message *gomail.Message) string {
+	recipients := message.GetHeader("Bcc")
+	recipientCount := len(recipients)
+
+	switch recipientCount {
+	case 0:
+		return message.GetHeader("To")[0]
+	case 1:
+		return recipients[0]
+	default:
+		return fmt.Sprintf("%s and %d+ more", recipients[0], recipientCount)
 	}
 }
